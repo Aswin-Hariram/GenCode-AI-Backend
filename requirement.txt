@@ -1,0 +1,7 @@
+langchain
+langchain-google-genai
+pandas
+openpyxl
+google-api-python-client
+python-dotenv
+flask-cors
