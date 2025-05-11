@@ -318,6 +318,11 @@ def server_error(e):
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
+# Root path handler
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8001))  # Default to 8000 for local dev
     app.run(host="0.0.0.0", port=port)
