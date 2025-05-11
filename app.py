@@ -60,7 +60,7 @@ if ENVIRONMENT == 'production':
 else:
     # Development settings
     app.config.update(
-        CORS_ORIGINS=['http://localhost:3000'],
+        CORS_ORIGINS=['https://gencode-ai.vercel.app/'],
     )
     logging.info("Running in DEVELOPMENT mode")
 
