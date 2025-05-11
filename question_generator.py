@@ -3,8 +3,8 @@ from config import llm
 
 def generate_dsa_question(topic: str) -> dict:
     prompt = f"""
-    You are an expert DSA question generator for coding interviews.
-    Generate a fully formatted, clean Markdown output for a **DSA problem** based on the
+    You are an expert Scenario DSA question generator for coding interviews.
+    Generate a fully formatted, clean Markdown output for a **Scenario Based DSA problem** based on the
     topic: "{topic}".
     1. Difficulty: Assign a difficulty level (Easy, Medium, Hard) based on the problem's complexity.
     2. Title: [Insert a relevant and concise title for the problem without revealing topic either directly or indirectly in the title]
