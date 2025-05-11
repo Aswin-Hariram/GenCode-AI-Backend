@@ -1,71 +1,22 @@
-from flask import Flask, jsonify, request, render_template, redirect, url_for
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from topic_manager import get_random_topic
 from question_generator import generate_dsa_question
 from codeCompiler import compile_code
 from submitCode import submit_code
 import os
-import logging
-from logging.handlers import RotatingFileHandler
 import traceback
-from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists
 load_dotenv()
 
-# Configure logging
-log_dir = 'logs'
-os.makedirs(log_dir, exist_ok=True)
-log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# File handler for logging
-file_handler = RotatingFileHandler(
-    os.path.join(log_dir, 'app.log'), 
-    maxBytes=10485760,  # 10MB
-    backupCount=10
-)
-file_handler.setFormatter(log_formatter)
-file_handler.setLevel(logging.INFO)
-
-# Console handler for logging
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
-console_handler.setLevel(logging.INFO)
-
-# Configure root logger
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-root_logger.addHandler(file_handler)
-root_logger.addHandler(console_handler)
-
 # Create Flask app
 app = Flask(__name__)
 
-# Configure app based on environment
-ENVIRONMENT = os.getenv('FLASK_ENV', 'development')
+# Enable CORS for all routes and all origins
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-if ENVIRONMENT == 'production':
-    # Production settings
-    app.config.update(
-        SESSION_COOKIE_SECURE=True,
-        SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='Lax',
-        PERMANENT_SESSION_LIFETIME=1800,  # 30 minutes
-        CORS_ORIGINS=os.getenv('CORS_ORIGINS', '').split(','),
-    )
-    # Apply ProxyFix for proper handling of reverse proxies
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
-    logging.info("Running in PRODUCTION mode")
-else:
-    # Development settings
-    app.config.update(
-        CORS_ORIGINS=['https://gencode-ai.vercel.app/'],
-    )
-    logging.info("Running in DEVELOPMENT mode")
-
-# Configure CORS
-CORS(app, resources={r"/*": {"origins": app.config['CORS_ORIGINS']}}, supports_credentials=True)
 
 # Constants
 TOPICS_FILE = os.getenv('TOPICS_FILE', 'dsa_topics.txt')
@@ -74,7 +25,7 @@ def read_topics():
     """Read all topics from the topics file."""
     try:
         if not os.path.exists(TOPICS_FILE):
-            logging.warning(f"Topics file not found: {TOPICS_FILE}")
+           
             return []
         
         with open(TOPICS_FILE, 'r') as file:
@@ -83,7 +34,7 @@ def read_topics():
         # Clean up topics (remove whitespace and empty lines)
         return [topic.strip() for topic in topics if topic.strip()]
     except Exception as e:
-        logging.error(f"Error reading topics file: {str(e)}")
+        # Error reading topics file
         return []
 
 def write_topics(topics):
@@ -92,10 +43,10 @@ def write_topics(topics):
         with open(TOPICS_FILE, 'w') as file:
             for topic in topics:
                 file.write(f"{topic}\n")
-        logging.info(f"Successfully wrote {len(topics)} topics to {TOPICS_FILE}")
+        # Successfully wrote topics
         return True
     except Exception as e:
-        logging.error(f"Error writing topics to file: {str(e)}")
+        # Error writing topics to file
         return False
 
 
@@ -104,7 +55,7 @@ def write_topics(topics):
 def submit():
     """Handle code submission and evaluation."""
     if not request.is_json:
-        logging.warning("Invalid request format: not JSON")
+        # Invalid request format
         return jsonify({
             'result': 'Failure',
             'message': 'Invalid request format. JSON required.'
@@ -119,14 +70,14 @@ def submit():
         
         # Validate required fields
         if not all([description, typedSolution, typedLanguage]):
-            logging.warning("Missing required fields in submission")
+            # Missing required fields
             return jsonify({
                 'result': 'Failure',
                 'message': 'Missing required fields in submission.'
             }), 400
 
         # Pass the code to submit_code function
-        logging.info(f"Processing code submission in {typedLanguage}")
+        # Processing code submission
         result = submit_code(typedSolution, description, typedSolution, typedLanguage)
 
         # Check the result and respond accordingly
@@ -134,7 +85,7 @@ def submit():
 
     except Exception as e:
         error_details = traceback.format_exc()
-        logging.error(f"Error in code submission: {str(e)}\n{error_details}")
+        # Error in code submission
         return jsonify({
             'result': 'Failure',
             'message': f'Error while processing submission: {str(e)}'
@@ -145,7 +96,7 @@ def submit():
 def compile():
     """Compile and run code."""
     if not request.is_json:
-        logging.warning("Invalid request format: not JSON")
+        # Invalid request format
         return jsonify({
             'result': 'Failure',
             'message': 'Invalid request format. JSON required.'
@@ -158,14 +109,14 @@ def compile():
         
         # Validate required fields
         if not lang or not code:
-            logging.warning("Missing required fields for compilation")
+            # Missing required fields for compilation
             return jsonify({
                 'result': 'Failure',
                 'message': 'Both language and code are required.'
             }), 400
 
         # Pass the code to compile_code function
-        logging.info(f"Compiling code in {lang}")
+        # Compiling code
         result = compile_code(code, lang)
 
         # Check the result and respond accordingly
@@ -173,7 +124,7 @@ def compile():
 
     except Exception as e:
         error_details = traceback.format_exc()
-        logging.error(f"Error during compilation: {str(e)}\n{error_details}")
+        # Error during compilation
         return jsonify({
             'result': 'Failure',
             'message': f'Error while compiling: {str(e)}'
@@ -185,17 +136,17 @@ def get_dsa_question():
     try:
         topic = get_random_topic(TOPICS_FILE)
         if not topic:
-            logging.warning("No topics found or error retrieving topic")
+            # No topics found
             return jsonify({
                 'error': 'No topics available. Please add topics first.'
             }), 404
             
-        logging.info(f"Generating DSA question for topic: {topic}")
+        # Generating DSA question
         result = generate_dsa_question(topic)
         return jsonify(result)
     except Exception as e:
         error_details = traceback.format_exc()
-        logging.error(f"Error generating DSA question: {str(e)}\n{error_details}")
+        # Error generating DSA question
         return jsonify({
             'error': f'Failed to generate question: {str(e)}'
         }), 500
@@ -205,11 +156,11 @@ def manage_topics():
     """Display the topics management page."""
     try:
         topics = read_topics()
-        logging.info(f"Displaying manage_topics page with {len(topics)} topics")
+        # Displaying manage_topics page
         return render_template('manage_topics.html', topics=topics)
     except Exception as e:
         error_details = traceback.format_exc()
-        logging.error(f"Error displaying manage_topics page: {str(e)}\n{error_details}")
+        # Error displaying manage_topics page
         return render_template('error.html', error=str(e)), 500
 
 @app.route('/add_topic', methods=['POST'])
@@ -219,7 +170,7 @@ def add_topic():
         new_topic = request.form.get('new_topic', '').strip()
         
         if not new_topic:
-            logging.warning("Attempted to add empty topic")
+            # Attempted to add empty topic
             return render_template('manage_topics.html', 
                                 topics=read_topics(), 
                                 message="Topic cannot be empty", 
@@ -229,7 +180,7 @@ def add_topic():
         
         # Check if topic already exists
         if new_topic in topics:
-            logging.info(f"Topic '{new_topic}' already exists")
+            # Topic already exists
             return render_template('manage_topics.html', 
                                 topics=topics, 
                                 message=f"Topic '{new_topic}' already exists", 
@@ -238,20 +189,20 @@ def add_topic():
         # Add the new topic
         topics.append(new_topic)
         if write_topics(topics):
-            logging.info(f"Topic '{new_topic}' added successfully")
+            # Topic added successfully
             return render_template('manage_topics.html', 
                                 topics=topics, 
                                 message=f"Topic '{new_topic}' added successfully", 
                                 success=True)
         else:
-            logging.error(f"Failed to write topics after adding '{new_topic}'")
+            # Failed to write topics
             return render_template('manage_topics.html', 
                                 topics=read_topics(), 
                                 message=f"Failed to add topic due to a system error", 
                                 success=False)
     except Exception as e:
         error_details = traceback.format_exc()
-        logging.error(f"Error adding topic: {str(e)}\n{error_details}")
+        # Error adding topic
         return render_template('manage_topics.html', 
                             topics=read_topics(), 
                             message=f"Error adding topic: {str(e)}", 
@@ -264,7 +215,7 @@ def remove_topic():
         topic_to_remove = request.form.get('topic', '').strip()
         
         if not topic_to_remove:
-            logging.warning("Attempted to remove topic without specifying which one")
+            # Attempted to remove topic without specifying which one
             return render_template('manage_topics.html', 
                                 topics=read_topics(), 
                                 message="No topic specified for removal", 
@@ -274,7 +225,7 @@ def remove_topic():
         
         # Check if topic exists
         if topic_to_remove not in topics:
-            logging.info(f"Topic '{topic_to_remove}' not found for removal")
+            # Topic not found for removal
             return render_template('manage_topics.html', 
                                 topics=topics, 
                                 message=f"Topic '{topic_to_remove}' not found", 
@@ -283,20 +234,20 @@ def remove_topic():
         # Remove the topic
         topics.remove(topic_to_remove)
         if write_topics(topics):
-            logging.info(f"Topic '{topic_to_remove}' removed successfully")
+            # Topic removed successfully
             return render_template('manage_topics.html', 
                                 topics=topics, 
                                 message=f"Topic '{topic_to_remove}' removed successfully", 
                                 success=True)
         else:
-            logging.error(f"Failed to write topics after removing '{topic_to_remove}'")
+            # Failed to write topics after removing
             return render_template('manage_topics.html', 
                                 topics=read_topics(), 
                                 message=f"Failed to remove topic due to a system error", 
                                 success=False)
     except Exception as e:
         error_details = traceback.format_exc()
-        logging.error(f"Error removing topic: {str(e)}\n{error_details}")
+        # Error removing topic
         return render_template('manage_topics.html', 
                             topics=read_topics(), 
                             message=f"Error removing topic: {str(e)}", 
@@ -305,12 +256,12 @@ def remove_topic():
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
-    logging.warning(f"404 error: {request.path}")
+    # 404 error
     return render_template('error.html', error="Page not found"), 404
 
 @app.errorhandler(500)
 def server_error(e):
-    logging.error(f"500 error: {str(e)}")
+    # 500 error
     return render_template('error.html', error="Internal server error"), 500
 
 # Health check endpoint
@@ -324,5 +275,5 @@ def index():
     return render_template('index.html')
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8001))  # Default to 8000 for local dev
+    port = int(os.environ.get("PORT", 8001))  # Default to 8001 for local dev
     app.run(host="0.0.0.0", port=port)

@@ -124,9 +124,7 @@ def generate_dsa_question(topic: str) -> dict:
     
     # Remove any remaining code blocks
     cleaned_markdown = re.sub(r'```cpp.*?```', '', cleaned_markdown, flags=re.DOTALL).strip()
-  
 
-    print(f"Initial Code: {initial_code}")
     return {
         'title': title,
         'difficulty': difficulty,
