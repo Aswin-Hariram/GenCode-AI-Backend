@@ -319,10 +319,5 @@ def health_check():
     return jsonify({'status': 'healthy'}), 200
 
 if __name__ == "__main__":
-    # In production, use a proper WSGI server like gunicorn
-    # For development, use the built-in Flask server
-    port = int(os.getenv('PORT', 8080))
-    debug = os.getenv('FLASK_ENV', 'development') != 'production'
-    
-    logging.info(f"Starting server on port {port} with debug={debug}")
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    port = int(os.environ.get("PORT", 8001))  # Default to 8000 for local dev
+    app.run(host="0.0.0.0", port=port)
