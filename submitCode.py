@@ -21,7 +21,7 @@ def submit_code(actualSolution: str, description: str, typedSolution: str, typed
         # Construct a detailed prompt for evaluating the typed solution
         validation_prompt = f"""
 🤖 **Expert Code Evaluation System**
-1. Should not autocorrect the typed solution code.
+1. Should not autocorrect or change the typed solution code.
 2. First check the code has actual logic solution to the problem other than main function. In such case return #NO ACTUAL LOGIC FOUND
 3. Your main task is to check whether the submitted solution is correct or not for the description and actual solution.
 4. You are an advanced AI programming evaluator tasked with providing a comprehensive, structured, and insightful analysis of a submitted solution.
@@ -49,6 +49,7 @@ def submit_code(actualSolution: str, description: str, typedSolution: str, typed
 ## 3. 🧪 Test Case Performance
 Should only in tabluar form.
 Ignore values in main function and pass test case value for testing.
+Should run the program with corresponding test case values.
 Incase the testcase result is pending/varies for all consider as ok
 Note - Nedd atleast 10 test cases for each category for checking the code is well optimized or not.
 <table style="width:100%; border-collapse: collapse;">
