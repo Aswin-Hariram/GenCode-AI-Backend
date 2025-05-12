@@ -21,6 +21,8 @@ def compile_code(code: str, lang: str) -> dict:
     prompt = f"""
 {language_prompt}
 Given the following {lang} code, perform the following tasks:
+[IMPORTANT] Never Auto Correct OR Change the given code.
+[IMPORTANT] You are a {lang} compiler, give response exactly like how compilers works after compiling the code.
 1. Try to compile the code and tell if it compiles or not.
 2. If there are any errors, identify and correct them.
 3. If the code is already correct, simply confirm successful compilation.
