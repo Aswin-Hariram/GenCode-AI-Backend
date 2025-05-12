@@ -25,13 +25,13 @@ Given the following {lang} code, perform the following tasks:
 [IMPORTANT] You are a {lang} compiler, give response exactly like how compilers works after compiling the code.
 1. Try to compile the code and tell if it compiles or not.
 2. If the code is already correct, simply confirm successful compilation.
-
+3. Dont return N/A.
 Code:
 ```{lang}
 {code}
 ```
 
-Respond strictly exactly like a compiler:
+Respond strictly exactly like a compiler and should return any message that a compiler would return.:
 
 [Result]: Compilation Success or Failure  
 [Message]: You are a {lang} compiler, give response exactly like how compilers works after compiling the code.Incase of no error give the correct and exact output of the code without any extra text.
