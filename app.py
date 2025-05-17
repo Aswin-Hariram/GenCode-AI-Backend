@@ -134,28 +134,32 @@ def compile():
 def get_dsa_question():
     """Generate a random DSA question based on a topic."""
     try:
-        topic = get_random_topic(TOPICS_FILE)
+        # Get a random topic from Firebase
+        topic = get_random_topic()
         if not topic:
-            # No topics found
+            # No topics found in Firestore
             return jsonify({
                 'error': 'No topics available. Please add topics first.'
             }), 404
             
-        # Generating DSA question
+        # Generate DSA question using the selected topic
         result = generate_dsa_question(topic)
         return jsonify(result)
     except Exception as e:
         error_details = traceback.format_exc()
+        print(f"Error in get_dsa_question: {error_details}")
         # Error generating DSA question
         return jsonify({
-            'error': f'Failed to generate question: {str(e)}'
+            'error': f'Failed to generate question: {str(e)}',
+            'details': str(e)  # Include more details for debugging
         }), 500
 
 @app.route('/manage_topics')
 def manage_topics():
     """Display the topics management page."""
     try:
-        topics = read_topics()
+        from firebase_service import FirebaseService
+        topics = FirebaseService.get_all_topics()
         # Displaying manage_topics page
         return render_template('manage_topics.html', topics=topics)
     except Exception as e:
@@ -165,91 +169,65 @@ def manage_topics():
 
 @app.route('/add_topic', methods=['POST'])
 def add_topic():
-    """Add a new topic to the topics file."""
+    """Add a new topic to Firestore."""
     try:
+        from firebase_service import FirebaseService
         new_topic = request.form.get('new_topic', '').strip()
         
         if not new_topic:
-            # Attempted to add empty topic
             return render_template('manage_topics.html', 
-                                topics=read_topics(), 
+                                topics=FirebaseService.get_all_topics(), 
                                 message="Topic cannot be empty", 
                                 success=False)
         
-        topics = read_topics()
-        
-        # Check if topic already exists
-        if new_topic in topics:
-            # Topic already exists
+        # Try to add the topic to Firebase
+        if not FirebaseService.add_topic(new_topic):
             return render_template('manage_topics.html', 
-                                topics=topics, 
+                                topics=FirebaseService.get_all_topics(), 
                                 message=f"Topic '{new_topic}' already exists", 
                                 success=False)
         
-        # Add the new topic
-        topics.append(new_topic)
-        if write_topics(topics):
-            # Topic added successfully
-            return render_template('manage_topics.html', 
-                                topics=topics, 
-                                message=f"Topic '{new_topic}' added successfully", 
-                                success=True)
-        else:
-            # Failed to write topics
-            return render_template('manage_topics.html', 
-                                topics=read_topics(), 
-                                message=f"Failed to add topic due to a system error", 
-                                success=False)
+        return render_template('manage_topics.html', 
+                            topics=FirebaseService.get_all_topics(), 
+                            message=f"Topic '{new_topic}' added successfully", 
+                            success=True)
+        
     except Exception as e:
         error_details = traceback.format_exc()
-        # Error adding topic
         return render_template('manage_topics.html', 
-                            topics=read_topics(), 
+                            topics=FirebaseService.get_all_topics() if 'FirebaseService' in locals() else [], 
                             message=f"Error adding topic: {str(e)}", 
                             success=False)
 
 @app.route('/remove_topic', methods=['POST'])
 def remove_topic():
-    """Remove a topic from the topics file."""
+    """Remove a topic from Firestore."""
     try:
+        from firebase_service import FirebaseService
         topic_to_remove = request.form.get('topic', '').strip()
         
         if not topic_to_remove:
-            # Attempted to remove topic without specifying which one
             return render_template('manage_topics.html', 
-                                topics=read_topics(), 
+                                topics=FirebaseService.get_all_topics(), 
                                 message="No topic specified for removal", 
                                 success=False)
         
-        topics = read_topics()
-        
-        # Check if topic exists
-        if topic_to_remove not in topics:
-            # Topic not found for removal
+        # Try to remove the topic from Firebase
+        if not FirebaseService.remove_topic(topic_to_remove):
             return render_template('manage_topics.html', 
-                                topics=topics, 
+                                topics=FirebaseService.get_all_topics(), 
                                 message=f"Topic '{topic_to_remove}' not found", 
                                 success=False)
         
-        # Remove the topic
-        topics.remove(topic_to_remove)
-        if write_topics(topics):
-            # Topic removed successfully
-            return render_template('manage_topics.html', 
-                                topics=topics, 
-                                message=f"Topic '{topic_to_remove}' removed successfully", 
-                                success=True)
-        else:
-            # Failed to write topics after removing
-            return render_template('manage_topics.html', 
-                                topics=read_topics(), 
-                                message=f"Failed to remove topic due to a system error", 
-                                success=False)
+        return render_template('manage_topics.html', 
+                            topics=FirebaseService.get_all_topics(), 
+                            message=f"Topic '{topic_to_remove}' removed successfully", 
+                            success=True)
+        
     except Exception as e:
         error_details = traceback.format_exc()
-        # Error removing topic
         return render_template('manage_topics.html', 
-                            topics=read_topics(), 
+                            topics=FirebaseService.get_all_topics() if 'FirebaseService' in locals() else [], 
                             message=f"Error removing topic: {str(e)}", 
                             success=False)
 

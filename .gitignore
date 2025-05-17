@@ -1,3 +1,8 @@
+# Firebase and environment files
+serviceAccountKey.json
+.env
+*.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -112,3 +117,4 @@ venv.bak/
 # Project specific
 .DS_Store
 dsa_topics.txt
+serviceAccountKey.json
