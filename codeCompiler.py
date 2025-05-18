@@ -38,7 +38,7 @@ Code to compile and execute:
 {code}
 ```
 
-Respond in this exact format:
+Respond in this exact format [Reconfirm by detecting the output of the code again once for confirmation]:
 [Result]: Compilation Success or Failure or Runtime Error
 [Message]: The exact compiler output or runtime output/error (no explanations)
 [CorrectedCode]: N/A
