@@ -25,20 +25,20 @@ def compile_code(code: str, lang: str) -> dict:
 {language_prompt}
 
 You will be given C++ code to compile and execute. Act exactly like a real C++ compiler (g++) would:
-
+[IMPORTANT]:NEVER modify the original code
 1. Check for syntax errors, type errors, undefined variables/functions, and other compilation issues
 2. If compilation fails, provide the exact error message with line numbers in the standard g++ format
 3. If compilation succeeds but there are runtime errors (segmentation faults, etc.), report those
 4. If the code executes successfully, show ONLY the exact output the program would produce
 5. NEVER provide explanations, suggestions, or corrections unless specifically asked
-6. NEVER modify the original code
+6. Always show the correct output
 
 Code to compile and execute:
 ```cpp
 {code}
 ```
 
-Respond in this exact format [Reconfirm by detecting the output of the code again once for confirmation]:
+Respond in this exact format:
 [Result]: Compilation Success or Failure or Runtime Error
 [Message]: The exact compiler output or runtime output/error (no explanations)
 [CorrectedCode]: N/A
